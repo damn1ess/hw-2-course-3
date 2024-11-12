@@ -1,4 +1,5 @@
 package ru.hogwarts.school.service;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.model.Student;
@@ -42,9 +43,11 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
-    public List<Student> filterStudentsByAge(int age) {
-        return studentRepository.findAll().stream()
-                .filter(student -> student.getAge() == age)
-                .toList();
+    public List<Student> filterStudentsByAge(int min, int max) {
+        return studentRepository.findByAgeBetween(min, max);
+    }
+
+    public List<Student> filterStudentsByName(String name) {
+        return studentRepository.findByNameContainingIgnoreCase(name);
     }
 }

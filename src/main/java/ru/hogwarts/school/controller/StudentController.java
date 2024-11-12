@@ -1,15 +1,22 @@
 package ru.hogwarts.school.controller;
 
-import org.springframework.web.bind.annotation.;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.web.bind.annotation.*;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/student")
 public class StudentController {
-    private final StudentService studentService = new StudentService();
+    private final StudentService studentService;
+
+    @Autowired
+    public StudentController(StudentService studentService) {
+        this.studentService = studentService;
+    }
 
     @PostMapping
     public Student createStudent(@RequestParam String name, @RequestParam int age) {
@@ -32,12 +39,17 @@ public class StudentController {
     }
 
     @GetMapping
-    public Map<Long, Student> getAllStudents() {
+    public List<Student> getAllStudents() {
         return studentService.getAllStudents();
     }
 
-    @GetMapping("/filter/age/{age}")
-    public Map<Long, Student> filterStudentsByAge(@PathVariable int age) {
-        return studentService.filterStudentsByAge(age);
+    @GetMapping("/filter/age")
+    public List<Student> filterStudentsByAge(@RequestParam int min, @RequestParam int max) {
+        return studentService.filterStudentsByAge(min, max);
+    }
+
+    @GetMapping("/filter/name")
+    public List<Student> filterStudentsByName(@RequestParam String name) {
+        return studentService.filterStudentsByName(name);
     }
 }
