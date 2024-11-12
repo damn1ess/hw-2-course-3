@@ -1,15 +1,20 @@
 package ru.hogwarts.school.controller;
 
-import org.springframework.web.bind.annotation.;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.web.bind.annotation.*;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.service.FacultyService;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/faculty")
 public class FacultyController {
-    private final FacultyService facultyService = new FacultyService();
+    private final FacultyService facultyService;
+    @Autowired
+    public FacultyController(FacultyService facultyService) {
+        this.facultyService = facultyService;
+    }
 
     @PostMapping
     public Faculty createFaculty(@RequestParam String name, @RequestParam String color) {
@@ -32,12 +37,12 @@ public class FacultyController {
     }
 
     @GetMapping
-    public Map<Long, Faculty> getAllFaculties() {
+    public List<Faculty> getAllFaculties() {
         return facultyService.getAllFaculties();
     }
 
-    @GetMapping("/filter/color/{color}")
-    public Map<Long, Faculty> filterFacultiesByColor(@PathVariable String color) {
-        return facultyService.filterFacultiesByColor(color);
+    @GetMapping("/filter")
+    public List<Faculty> filterFacultiesByNameOrColor(@RequestParam String name, @RequestParam String color) {
+        return facultyService.filterFacultiesByNameOrColor(name, color);
     }
 }
