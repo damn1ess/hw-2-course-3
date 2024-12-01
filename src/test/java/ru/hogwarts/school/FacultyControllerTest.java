@@ -1,65 +1,94 @@
 package ru.hogwarts.school;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import ru.hogwarts.school.controller.FacultyController;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.service.FacultyService;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
+@WebMvcTest(FacultyController.class)
 public class FacultyControllerTest {
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private MockMvc mockMvc;
 
-    @Test
-    public void testCreateFaculty() {
-        ResponseEntity<Faculty> response = restTemplate.postForEntity("/faculty?name=Magic&color=Blue", null, Faculty.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("Magic");
+    @Mock
+    private FacultyService facultyService;
+
+    private Faculty faculty;
+
+    @BeforeEach
+    public void setUp() {
+        faculty = new Faculty("Magic", "Blue");
+        faculty.setId(1L);
     }
 
     @Test
-    public void testGetFaculty() {
-        ResponseEntity<Faculty> response = restTemplate.getForEntity("/faculty/1", Faculty.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
+    public void testCreateFaculty() throws Exception {
+        when(facultyService.createFaculty(any(String.class), any(String.class))).thenReturn(faculty);
+
+        mockMvc.perform(post("/faculty?name=Magic&color=Blue")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Magic"));
     }
 
     @Test
-    public void testUpdateFaculty() {
-        restTemplate.put("/faculty/1?name=Wizardry&color=Red", null);
-        ResponseEntity<Faculty> response = restTemplate.getForEntity("/faculty/1", Faculty.class);
-        assertThat(response.getBody().getName()).isEqualTo("Wizardry");
-        assertThat(response.getBody().getColor()).isEqualTo("Red");
+    public void testGetFaculty() throws Exception {
+        when(facultyService.getFaculty(1L)).thenReturn(faculty);
+
+        mockMvc.perform(get("/faculty/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Magic"));
     }
 
     @Test
-    public void testDeleteFaculty() {
-        restTemplate.delete("/faculty/1");
-        ResponseEntity<Faculty> response = restTemplate.getForEntity("/faculty/1", Faculty.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    public void testUpdateFaculty() throws Exception {
+        when(facultyService.updateFaculty(any(Long.class), any(String.class), any(String.class))).thenReturn(faculty);
+
+        mockMvc.perform(put("/faculty/1?name=Wizardry&color=Red")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Wizardry"));
     }
 
     @Test
-    public void testGetAllFaculties() {
-        ResponseEntity<Faculty[]> response = restTemplate.getForEntity("/faculty", Faculty[].class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().length).isGreaterThan(0);
+    public void testDeleteFaculty() throws Exception {
+        mockMvc.perform(delete("/faculty/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
-    public void testFilterFacultiesByNameOrColor() {
-        ResponseEntity<Faculty[]> response = restTemplate.getForEntity("/faculty/filter?name=Magic&color=Blue", Faculty[].class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
+    public void testGetAllFaculties() throws Exception {
+        when(facultyService.getAllFaculties()).thenReturn(List.of(faculty));
+
+        mockMvc.perform(get("/faculty")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Magic"));
+    }
+
+    @Test
+    public void testFilterFacultiesByNameOrColor() throws Exception {
+        when(facultyService.filterFacultiesByNameOrColor("Magic", "Blue")).thenReturn(List.of(faculty));
+
+        mockMvc.perform(get("/faculty/filter?name=Magic&color=Blue")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Magic"));
     }
 }
