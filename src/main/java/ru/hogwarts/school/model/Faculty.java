@@ -39,6 +39,10 @@ public class Faculty {
         this.color = color;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public List<Student> getStudents() {
         return students;
     }
@@ -47,6 +51,5 @@ public class Faculty {
         this.students = students;
     }
 
-    public void setName(String name) {
-    }
+
 }

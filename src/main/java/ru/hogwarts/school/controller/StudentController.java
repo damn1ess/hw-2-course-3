@@ -2,8 +2,11 @@ package ru.hogwarts.school.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.List;
@@ -51,5 +54,24 @@ public class StudentController {
     @GetMapping("/filter/name")
     public List<Student> filterStudentsByName(@RequestParam String name) {
         return studentService.filterStudentsByName(name);
+    }
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @GetMapping("/students/count")
+    public long getCountOfStudents() {
+        return studentRepository.countAllStudents();
+    }
+
+    @GetMapping("/students/average-age")
+    public double getAverageAgeOfStudents() {
+        return studentRepository.averageStudentAge();
+    }
+
+    @GetMapping("/students/last-five")
+    public List<Student> getLastFiveStudents(@RequestParam(defaultValue = "0") int page,
+                                             @RequestParam(defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return studentRepository.findLastFiveStudents(pageable);
     }
 }

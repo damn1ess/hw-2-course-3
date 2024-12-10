@@ -24,7 +24,7 @@ public class StudentControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @MockBean
     private StudentService studentService;
 
     private Student student;
